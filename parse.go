@@ -5,35 +5,33 @@ import (
 )
 
 const (
-	expressionToken tokenType = iota
+	rootToken tokenType = iota
+	expressionToken
 	operatorToken
-	fileToken
+	operandToken
 )
 
 type tokenType int
 
 type parser struct {
-	runes     []rune
-	level     int
-	expr      *expression
-	tokenType tokenType
+	runes         []rune
+	expr          *expression
+	prevTokenType tokenType
 }
 
 func parseInput(s string) (*calc, error) {
 	p := &parser{
-		runes: []rune(s),
+		runes:         []rune(s),
+		prevTokenType: rootToken,
+		expr:          newExpression(),
 	}
 
-	for i, next := 0, 0; len(p.runes) > i; i = next {
-		if p.level < 0 {
-			return nil, ErrExpressionSyntax
-		}
-
+	for i, next := 0, 0; len(p.runes) > next; i = next {
 		switch p.runes[i] {
 		case '[':
-			p.levelUp()
+			p.up()
 		case ']':
-			p.levelDown()
+			p.down()
 		case ' ':
 			// skip whitespaces
 		default:
@@ -41,7 +39,7 @@ func parseInput(s string) (*calc, error) {
 			if next < 0 {
 				return nil, ErrExpressionSyntax
 			}
-			err := p.parseToken(i, next)
+			err := p.processToken(i, next)
 			if err != nil {
 				return nil, err
 			}
@@ -52,38 +50,36 @@ func parseInput(s string) (*calc, error) {
 	return &calc{Expr: p.expr}, nil
 }
 
-func (p *parser) levelUp() {
-	p.level++
-	p.expr = &expression{parent: p.expr}
-	if p.expr.parent != nil {
-		p.expr.parent.Add(&set{Expr: p.expr})
+func (p *parser) up() {
+	if p.prevTokenType != rootToken {
+		p.expr = p.expr.NewExpression()
 	}
-
-	p.tokenType = expressionToken
+	p.prevTokenType = expressionToken
 }
 
-func (p *parser) levelDown() {
-	p.level--
-	if p.level != 0 {
-		p.expr = p.expr.parent
+func (p *parser) down() {
+	if !p.expr.IsRoot() {
+		p.expr = p.expr.Parent()
 	}
-	p.tokenType = operatorToken
+	p.prevTokenType = operandToken
 }
 
-func (p *parser) parseToken(at, to int) error {
+func (p *parser) processToken(at, to int) error {
 
 	token, err := cut(p.runes, at, to)
 	if err != nil {
 		return err
 	}
 
-	switch p.tokenType {
-	case expressionToken:
-		p.tokenType = operatorToken
-		p.expr.Operator = token
-	case operatorToken, fileToken:
-		p.tokenType = fileToken
-		p.expr.Add(&set{File: token})
+	switch p.prevTokenType {
+	case expressionToken, rootToken:
+		p.prevTokenType = operatorToken
+
+		p.expr.SetOperator(token)
+	case operatorToken, operandToken:
+		p.prevTokenType = operandToken
+
+		p.expr.AddFile(token)
 	default:
 		return ErrExpressionSyntax
 	}

@@ -22,9 +22,9 @@ func Test_parseInput(t *testing.T) {
 			s:    "[ SUM a.txt ]",
 			want: &calc{
 				Expr: &expression{
-					Operator: Sum,
-					Sets: []*set{
-						&set{File: a},
+					operator: Sum,
+					operands: []*operand{
+						&operand{file: a},
 					},
 				},
 			},
@@ -34,16 +34,16 @@ func Test_parseInput(t *testing.T) {
 			s:    "[ SUM [ DIF b.txt c.txt ] a.txt ]",
 			want: &calc{
 				Expr: &expression{
-					Operator: Sum,
-					Sets: []*set{
-						&set{Expr: &expression{
-							Operator: Dif,
-							Sets: []*set{
-								&set{File: b},
-								&set{File: c},
+					operator: Sum,
+					operands: []*operand{
+						&operand{expr: &expression{
+							operator: Dif,
+							operands: []*operand{
+								&operand{file: b},
+								&operand{file: c},
 							},
 						}},
-						&set{File: a},
+						&operand{file: a},
 					},
 				},
 			},
@@ -53,21 +53,21 @@ func Test_parseInput(t *testing.T) {
 			s:    "[ SUM [ DIF b.txt c.txt ] a.txt [ INT a.txt b.txt ] ]",
 			want: &calc{
 				Expr: &expression{
-					Operator: Sum,
-					Sets: []*set{
-						&set{Expr: &expression{
-							Operator: Dif,
-							Sets: []*set{
-								&set{File: b},
-								&set{File: c},
+					operator: Sum,
+					operands: []*operand{
+						&operand{expr: &expression{
+							operator: Dif,
+							operands: []*operand{
+								&operand{file: b},
+								&operand{file: c},
 							},
 						}},
-						&set{File: a},
-						&set{Expr: &expression{
-							Operator: Int,
-							Sets: []*set{
-								&set{File: a},
-								&set{File: b},
+						&operand{file: a},
+						&operand{expr: &expression{
+							operator: Int,
+							operands: []*operand{
+								&operand{file: a},
+								&operand{file: b},
 							},
 						}},
 					},
@@ -79,21 +79,21 @@ func Test_parseInput(t *testing.T) {
 			s:    "[ SUM [ DIF a.txt b.txt c.txt ] [ INT b.txt c.txt ] ]",
 			want: &calc{
 				Expr: &expression{
-					Operator: Sum,
-					Sets: []*set{
-						&set{Expr: &expression{
-							Operator: Dif,
-							Sets: []*set{
-								&set{File: a},
-								&set{File: b},
-								&set{File: c},
+					operator: Sum,
+					operands: []*operand{
+						&operand{expr: &expression{
+							operator: Dif,
+							operands: []*operand{
+								&operand{file: a},
+								&operand{file: b},
+								&operand{file: c},
 							},
 						}},
-						&set{Expr: &expression{
-							Operator: Int,
-							Sets: []*set{
-								&set{File: b},
-								&set{File: c},
+						&operand{expr: &expression{
+							operator: Int,
+							operands: []*operand{
+								&operand{file: b},
+								&operand{file: c},
 							},
 						}},
 					},
@@ -105,25 +105,25 @@ func Test_parseInput(t *testing.T) {
 			s:    "[ SUM [ DIF b.txt c.txt ] a.txt [ INT a.txt [ SUM b.txt c.txt ] ] ]",
 			want: &calc{
 				Expr: &expression{
-					Operator: Sum,
-					Sets: []*set{
-						&set{Expr: &expression{
-							Operator: Dif,
-							Sets: []*set{
-								&set{File: b},
-								&set{File: c},
+					operator: Sum,
+					operands: []*operand{
+						&operand{expr: &expression{
+							operator: Dif,
+							operands: []*operand{
+								&operand{file: b},
+								&operand{file: c},
 							},
 						}},
-						&set{File: a},
-						&set{Expr: &expression{
-							Operator: Int,
-							Sets: []*set{
-								&set{File: a},
-								&set{Expr: &expression{
-									Operator: Sum,
-									Sets: []*set{
-										&set{File: b},
-										&set{File: c},
+						&operand{file: a},
+						&operand{expr: &expression{
+							operator: Int,
+							operands: []*operand{
+								&operand{file: a},
+								&operand{expr: &expression{
+									operator: Sum,
+									operands: []*operand{
+										&operand{file: b},
+										&operand{file: c},
 									},
 								}},
 							},
@@ -142,7 +142,7 @@ func Test_parseInput(t *testing.T) {
 				return
 			}
 			if !got.Expr.Equal(tt.want.Expr) {
-				t.Errorf("parseInput() = %#v, want %#v", got, tt.want)
+				t.Errorf("parseInput() = %s, want %s", got, tt.want)
 			}
 		})
 	}

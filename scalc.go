@@ -20,6 +20,7 @@ import (
 	"os"
 	"sort"
 	"strconv"
+	"strings"
 )
 
 // Calculator represents a calculator interface.
@@ -38,7 +39,7 @@ type calc struct {
 }
 
 func (c *calc) Calculate() ([]int, error) {
-	result, err := c.Expr.calculate()
+	result, err := c.Expr.Calculate()
 	if err != nil {
 		return nil, err
 	}
@@ -51,74 +52,133 @@ func (c *calc) Calculate() ([]int, error) {
 
 type expression struct {
 	parent   *expression
-	Operator string
-	Sets     []*set
+	operator string
+	operands []*operand
 }
 
-func (e *expression) Add(s *set) {
-	e.Sets = append(e.Sets, s)
+func newExpression() *expression {
+	return &expression{}
 }
 
-func (e *expression) calculate() ([]int, error) {
-	if e == nil || e.Operator == "" {
+func (e *expression) IsRoot() bool {
+	return e != nil && e.parent == nil
+}
+
+func (e *expression) Parent() *expression {
+	return e.parent
+}
+
+func (e *expression) NewExpression() *expression {
+	child := &expression{parent: e}
+
+	e.add(&operand{expr: child})
+
+	return child
+}
+
+func (e *expression) SetOperator(op string) {
+	e.operator = op
+}
+
+func (e *expression) AddFile(file string) {
+	e.add(&operand{file: file})
+}
+
+func (e *expression) add(s *operand) {
+	e.operands = append(e.operands, s)
+}
+
+func (e *expression) Calculate() ([]int, error) {
+	if e == nil || e.operator == "" {
 		return nil, nil
 	}
 
-	sets := make([][]int, 0, len(e.Sets))
+	operands := make([][]int, 0, len(e.operands))
 
-	for _, s := range e.Sets {
-		set, err := s.Set()
+	for _, o := range e.operands {
+		set, err := o.Value()
 		if err != nil {
 			return nil, err
 		}
 
-		sets = append(sets, set)
+		operands = append(operands, set)
 	}
 
-	return calculate(e.Operator, sets...), nil
+	return calculate(e.operator, operands...), nil
 }
 
+// Equal checks expressions for equality.
 func (e *expression) Equal(x *expression) bool {
 	if e == nil && x == nil {
 		return true
 	}
 
-	if e.Operator != x.Operator || len(e.Sets) != len(x.Sets) {
+	if e.operator != x.operator || len(e.operands) != len(x.operands) {
 		return false
 	}
 
-	for i := range e.Sets {
-		if !e.Sets[i].Equal(x.Sets[i]) {
+	for i := range e.operands {
+		if !e.operands[i].Equal(x.operands[i]) {
 			return false
 		}
 	}
 	return true
 }
 
-type set struct {
-	File string
-	Expr *expression
+func (e *expression) String() string {
+	if e == nil || e.operator == "" {
+		return "[ EMPTY ]"
+	}
+
+	operands := make([]string, 0, len(e.operands))
+
+	for _, o := range e.operands {
+		operands = append(operands, o.String())
+	}
+
+	return fmt.Sprintf("[ %s %s ]", e.operator, strings.Join(operands, " "))
 }
 
-func (s *set) Set() ([]int, error) {
+type operand struct {
+	file string
+	expr *expression
+}
+
+func (o *operand) Value() ([]int, error) {
 	var (
-		set []int
+		val []int
 		err error
 	)
 
-	if s.File != "" {
-		set, err = readFromFile(s.File)
+	switch {
+	case o.file != "":
+		val, err = readFromFile(o.file)
 		if err != nil {
-			return nil, fmt.Errorf("read from file: %w", err)
+			err = fmt.Errorf("read from file: %w", err)
 		}
-	} else {
-		set, err = s.Expr.calculate()
+	case o.expr != nil:
+		val, err = o.expr.Calculate()
+	default:
+		err = ErrEmptyOperand
 	}
-	return set, err
+
+	return val, err
 }
 
-func (s *set) Equal(x *set) bool {
-	return s.File == x.File && s.Expr.Equal(x.Expr)
+// Equal checks operands for equality.
+func (o *operand) Equal(x *operand) bool {
+	return o.file == x.file && o.expr.Equal(x.expr)
+}
+
+func (o *operand) String() string {
+	switch {
+	case o.file != "":
+		return o.file
+	case o.expr != nil:
+		return o.expr.String()
+	default:
+		return "<EMPTY>"
+	}
 }
 
 func readFromFile(name string) ([]int, error) {
