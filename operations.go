@@ -7,14 +7,14 @@ const (
 	Dif = "DIF"
 )
 
-func calculate(op string, sets ...[]int) []int {
-	switch op {
+func calculate(operator string, operands ...[]int) []int {
+	switch operator {
 	case Sum:
-		return union(sets...)
+		return union(operands...)
 	case Int:
-		return intersection(sets...)
+		return intersection(operands...)
 	case Dif:
-		return difference(sets...)
+		return difference(operands...)
 	default:
 		return nil
 
