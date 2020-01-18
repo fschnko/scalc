@@ -13,19 +13,24 @@ const (
 
 type tokenType int
 
-type parser struct {
+// Parser a expression parser.
+type Parser struct {
 	runes         []rune
-	expr          *expression
+	expr          *Expression
 	prevTokenType tokenType
 }
 
-func parseInput(s string) (*calc, error) {
-	p := &parser{
+// NewParser creates new parser for a string.
+func NewParser(s string) *Parser {
+	return &Parser{
 		runes:         []rune(s),
 		prevTokenType: rootToken,
-		expr:          newExpression(),
+		expr:          NewExpression(),
 	}
+}
 
+// Process parsess expression.
+func (p *Parser) Process() (*Expression, error) {
 	for i, next := 0, 0; len(p.runes) > next; i = next {
 		switch p.runes[i] {
 		case '[':
@@ -47,24 +52,24 @@ func parseInput(s string) (*calc, error) {
 		next++
 	}
 
-	return &calc{Expr: p.expr}, nil
+	return p.expr, nil
 }
 
-func (p *parser) up() {
+func (p *Parser) up() {
 	if p.prevTokenType != rootToken {
 		p.expr = p.expr.NewExpression()
 	}
 	p.prevTokenType = expressionToken
 }
 
-func (p *parser) down() {
+func (p *Parser) down() {
 	if !p.expr.IsRoot() {
 		p.expr = p.expr.Parent()
 	}
 	p.prevTokenType = operandToken
 }
 
-func (p *parser) processToken(at, to int) error {
+func (p *Parser) processToken(at, to int) error {
 
 	token, err := cut(p.runes, at, to)
 	if err != nil {
