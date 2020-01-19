@@ -4,8 +4,8 @@ import (
 	"testing"
 )
 
-func Test_parseInput(t *testing.T) {
-	var (
+func TestParser_Process(t *testing.T) {
+	const (
 		a = "a.txt"
 		b = "b.txt"
 		c = "c.txt"
@@ -122,6 +122,36 @@ func Test_parseInput(t *testing.T) {
 				},
 			},
 			wantErr: false,
+		},
+		// Fail cases
+		{
+			name:    "empty string",
+			s:       "",
+			wantErr: true,
+		}, {
+			name:    "empty brackets",
+			s:       "[]",
+			wantErr: true,
+		}, {
+			name:    "empty operands",
+			s:       "[ DIF ]",
+			wantErr: true,
+		}, {
+			name:    "empty operator",
+			s:       "[ a.txt b.txt c.txt]",
+			wantErr: true,
+		}, {
+			name:    "brackets inconsistency",
+			s:       "[SUM [DIF a.txt b.txt] [INT a.txt b.txt]",
+			wantErr: true,
+		}, {
+			name:    "no brackets",
+			s:       "DIF a.txt b.txt",
+			wantErr: true,
+		}, {
+			name:    "end of the line",
+			s:       "[SUM [DIF a.txt b.txt] [INT a.txt b.txt",
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
