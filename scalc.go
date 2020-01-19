@@ -15,24 +15,18 @@ DIF - returns difference of first set and the rest ones
 package scalc
 
 import (
-	"fmt"
 	"sort"
 )
 
 // Calculator represents a calculator interface.
 type Calculator interface {
+	// Calculate calculates an expression an returns sorted result.
 	Calculate() ([]int, error)
 }
 
-// New parses input string for expression
-// and returns calculator for a given one.
-func New(s string) (Calculator, error) {
-	expr, err := NewParser(s).Process()
-	if err != nil {
-		return nil, fmt.Errorf("process expression: %w", err)
-	}
-
-	return &calc{expr: expr}, nil
+// New returns calculator for a given expression.
+func New(expr *Expression) Calculator {
+	return &calc{expr: expr}
 }
 
 type calc struct {

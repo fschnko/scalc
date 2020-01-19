@@ -31,18 +31,33 @@ func NewParser(s string) *Parser {
 
 // Process parsess expression.
 func (p *Parser) Process() (*Expression, error) {
+	if len(p.runes) == 0 {
+		return nil, ednOfLineSyntaxError(0)
+	}
+
+	brackets := make(rstack, 0)
 	for i, next := 0, 0; len(p.runes) > next; i = next {
 		switch p.runes[i] {
 		case '[':
+			brackets.Push(p.runes[i])
+			if p.prevTokenType == expressionToken {
+				return nil, tokenSyntaxError(string(p.runes[i]), i)
+			}
+
 			p.up()
 		case ']':
+			r := brackets.Pop()
+			if p.prevTokenType != operandToken || !isPair(r, p.runes[i]) {
+				return nil, tokenSyntaxError(string(p.runes[i]), i)
+			}
+
 			p.down()
-		case ' ':
+		case ' ', '\t', '\n':
 			// skip whitespaces
 		default:
-			next = firstIndexAfterN(p.runes, ' ', i)
+			next = endOfToken(p.runes, i)
 			if next < 0 {
-				return nil, ErrExpressionSyntax
+				return nil, ednOfLineSyntaxError(len(p.runes))
 			}
 			err := p.processToken(i, next)
 			if err != nil {
@@ -50,6 +65,10 @@ func (p *Parser) Process() (*Expression, error) {
 			}
 		}
 		next++
+	}
+
+	if len(brackets) > 0 {
+		return nil, ednOfLineSyntaxError(len(p.runes))
 	}
 
 	return p.expr, nil
@@ -70,14 +89,16 @@ func (p *Parser) down() {
 }
 
 func (p *Parser) processToken(at, to int) error {
-
-	token, err := cut(p.runes, at, to)
+	token, err := cut(p.runes, at, to+1)
 	if err != nil {
 		return err
 	}
 
 	switch p.prevTokenType {
-	case expressionToken, rootToken:
+	case expressionToken:
+		if !isOperator(token) {
+			return tokenSyntaxError(token, at)
+		}
 		p.prevTokenType = operatorToken
 
 		p.expr.SetOperator(token)
@@ -86,7 +107,7 @@ func (p *Parser) processToken(at, to int) error {
 
 		p.expr.AddFile(token)
 	default:
-		return ErrExpressionSyntax
+		return tokenSyntaxError(token, at)
 	}
 	return nil
 }
@@ -102,14 +123,41 @@ func cut(runes []rune, at, to int) (string, error) {
 	return string(result), nil
 }
 
-func firstIndexAfterN(runes []rune, r rune, n int) int {
+func endOfToken(runes []rune, n int) int {
 	if n < 0 {
 		n = 0
 	}
 	for i := n; len(runes) > i; i++ {
-		if runes[i] == r {
-			return i
+		if isCloserToken(runes[i]) {
+			return i - 1
 		}
 	}
 	return -1
+}
+
+func isCloserToken(r rune) bool {
+	switch r {
+	case ' ', '\n', '\t', ']':
+		return true
+	default:
+		return false
+	}
+}
+
+func isPair(open, close rune) bool {
+	switch open {
+	case '[':
+		return close == ']'
+	default:
+		return false
+	}
+}
+
+func isOperator(op string) bool {
+	switch op {
+	case Sum, Int, Dif:
+		return true
+	default:
+		return false
+	}
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -8,22 +9,39 @@ import (
 	"github.com/fschnko/scalc"
 )
 
+var (
+	help   = flag.Bool("help", false, "display usage information and exit")
+	verify = flag.Bool("verify", false, "verify an expression syntax and exit")
+)
+
 func main() {
 
-	if len(os.Args) != 2 {
+	flag.Parse()
+
+	if *help {
+		usage()
+		return
+	}
+
+	if len(os.Args) < 2 {
 		log.Println("Wrong arguments count")
 		usage()
 		os.Exit(1)
 	}
 
-	calc, err := scalc.New(os.Args[1])
+	expr, err := scalc.NewParser(os.Args[len(os.Args)-1]).Process()
 	if err != nil {
-		log.Fatalf("Create a new instance of calc: %s", err)
+		log.Fatalf("Process: %s", err)
 	}
 
-	result, err := calc.Calculate()
+	if *verify {
+		fmt.Println("The expression has the correct syntax.")
+		return
+	}
+
+	result, err := scalc.New(expr).Calculate()
 	if err != nil {
-		log.Fatalf("Calculate expression: %s", err)
+		log.Fatalf("Calculate: %s", err)
 	}
 
 	for _, r := range result {
@@ -32,10 +50,15 @@ func main() {
 }
 
 func usage() {
-	fmt.Println(`
-	scalc a basic sets calculator.
+	fmt.Println(`scalc a basic sets calculator.
 
-	Grammar of calculator is given:
+Usage:
+	scalc [OPTIONS...] "<EXPRESSION>"
+
+Options:`)
+	flag.PrintDefaults()
+	fmt.Println(`
+Grammar of calculator is given:
 	expression := “[“ operator sets “]”
 	sets := set | set sets
 	set := file | expression
@@ -47,6 +70,7 @@ func usage() {
 	INT - returns intersection of all sets
 	DIF - returns difference of first set and the rest ones
 
-	Usage: ./scalc "[ SUM [ DIF a.txt b.txt c.txt ] [ INT b.txt c.txt ] ]"
+Example: 
+	scalc "[ SUM [ DIF a.txt b.txt c.txt ] [ INT b.txt c.txt ] ]"
 	`)
 }
