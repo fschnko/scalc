@@ -52,22 +52,19 @@ func intersection(sets ...[]int) []int {
 
 // difference returns a difference of the first set and the rest ones.
 func difference(sets ...[]int) []int {
-	length := len(sets)
-	switch {
-	case length == 0:
+	switch len(sets) {
+	case 0:
 		return nil
-	case length == 1:
+	case 1:
 		return normalize(sets[0])
 	default:
-		var d, first []int
-		if len(sets) > 0 {
-			first = sets[0]
-			sets = sets[1:]
-		}
+		result := []int{}
+		first := sets[0]
+		sets = sets[1:]
 		for i := range sets {
-			d = append(d, diff(first, sets[i])...)
+			result = append(result, diff(first, sets[i])...)
 		}
-		return normalize(d)
+		return normalize(result)
 	}
 }
 
