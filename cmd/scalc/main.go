@@ -29,7 +29,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	expr, err := scalc.NewParser(os.Args[len(os.Args)-1]).Process()
+	expr, err := scalc.New(os.Args[len(os.Args)-1]).Process()
 	if err != nil {
 		log.Fatalf("Process: %s", err)
 	}
@@ -39,7 +39,7 @@ func main() {
 		return
 	}
 
-	result, err := scalc.New(expr).Calculate()
+	result, err := expr.Value()
 	if err != nil {
 		log.Fatalf("Calculate: %s", err)
 	}
