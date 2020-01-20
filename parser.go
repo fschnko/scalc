@@ -20,8 +20,8 @@ type Parser struct {
 	prevTokenType tokenType
 }
 
-// NewParser creates new parser for a string.
-func NewParser(s string) *Parser {
+// New creates new parser for a string.
+func New(s string) *Parser {
 	return &Parser{
 		runes:         []rune(s),
 		prevTokenType: rootToken,
