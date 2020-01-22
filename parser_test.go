@@ -21,7 +21,7 @@ func TestParser_Process(t *testing.T) {
 			name: "simple string",
 			s:    "[ SUM a.txt ]",
 			want: &Expression{
-				operator: Sum,
+				operator: NewOperator(Sum),
 				operands: []*operand{
 					&operand{file: a},
 				},
@@ -31,10 +31,10 @@ func TestParser_Process(t *testing.T) {
 			name: "two level string",
 			s:    "[ SUM [ DIF b.txt c.txt ] a.txt ]",
 			want: &Expression{
-				operator: Sum,
+				operator: NewOperator(Sum),
 				operands: []*operand{
 					&operand{expr: &Expression{
-						operator: Dif,
+						operator: NewOperator(Dif),
 						operands: []*operand{
 							&operand{file: b},
 							&operand{file: c},
@@ -48,10 +48,10 @@ func TestParser_Process(t *testing.T) {
 			name: "three sets string",
 			s:    "[ SUM [ DIF b.txt c.txt ] a.txt [ INT a.txt b.txt ] ]",
 			want: &Expression{
-				operator: Sum,
+				operator: NewOperator(Sum),
 				operands: []*operand{
 					&operand{expr: &Expression{
-						operator: Dif,
+						operator: NewOperator(Dif),
 						operands: []*operand{
 							&operand{file: b},
 							&operand{file: c},
@@ -59,7 +59,7 @@ func TestParser_Process(t *testing.T) {
 					}},
 					&operand{file: a},
 					&operand{expr: &Expression{
-						operator: Int,
+						operator: NewOperator(Int),
 						operands: []*operand{
 							&operand{file: a},
 							&operand{file: b},
@@ -72,10 +72,10 @@ func TestParser_Process(t *testing.T) {
 			name: "three sets string",
 			s:    "[ SUM [ DIF a.txt b.txt c.txt ] [ INT b.txt c.txt ] ]",
 			want: &Expression{
-				operator: Sum,
+				operator: NewOperator(Sum),
 				operands: []*operand{
 					&operand{expr: &Expression{
-						operator: Dif,
+						operator: NewOperator(Dif),
 						operands: []*operand{
 							&operand{file: a},
 							&operand{file: b},
@@ -83,7 +83,7 @@ func TestParser_Process(t *testing.T) {
 						},
 					}},
 					&operand{expr: &Expression{
-						operator: Int,
+						operator: NewOperator(Int),
 						operands: []*operand{
 							&operand{file: b},
 							&operand{file: c},
@@ -96,10 +96,10 @@ func TestParser_Process(t *testing.T) {
 			name: "three level string",
 			s:    "[ SUM [ DIF b.txt c.txt ] a.txt [ INT a.txt [ SUM b.txt c.txt ] ] ]",
 			want: &Expression{
-				operator: Sum,
+				operator: NewOperator(Sum),
 				operands: []*operand{
 					&operand{expr: &Expression{
-						operator: Dif,
+						operator: NewOperator(Dif),
 						operands: []*operand{
 							&operand{file: b},
 							&operand{file: c},
@@ -107,11 +107,11 @@ func TestParser_Process(t *testing.T) {
 					}},
 					&operand{file: a},
 					&operand{expr: &Expression{
-						operator: Int,
+						operator: NewOperator(Int),
 						operands: []*operand{
 							&operand{file: a},
 							&operand{expr: &Expression{
-								operator: Sum,
+								operator: NewOperator(Sum),
 								operands: []*operand{
 									&operand{file: b},
 									&operand{file: c},

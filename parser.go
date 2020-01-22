@@ -101,13 +101,13 @@ func (p *Parser) processToken(at, to int) error {
 
 	switch p.prevTokenType {
 	case expressionToken:
-		if !isOperator(token) {
+		if !IsOperator(token) {
 			return tokenSyntaxError(token, at)
 		}
 
 		p.prevTokenType = operatorToken
 
-		p.expr.SetOperator(token)
+		p.expr.SetOperator(NewOperator(token))
 	case operatorToken, operandToken:
 		p.prevTokenType = operandToken
 
@@ -157,15 +157,6 @@ func isPair(open, close rune) bool {
 	switch open {
 	case '[':
 		return close == ']'
-	default:
-		return false
-	}
-}
-
-func isOperator(op string) bool {
-	switch op {
-	case Sum, Int, Dif:
-		return true
 	default:
 		return false
 	}
