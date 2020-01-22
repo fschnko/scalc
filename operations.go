@@ -17,12 +17,10 @@ func calculate(operator string, operands ...[]int) []int {
 		return difference(operands...)
 	default:
 		return nil
-
 	}
 }
 
 // union returns a union of sorted sets.
-// Algorithm has side effects for input data.
 func union(sets ...[]int) []int {
 	result := []int{}
 
@@ -34,22 +32,23 @@ func union(sets ...[]int) []int {
 }
 
 // intersection returns an intersection of sets.
-// Algorithm has side effects for input data.
 func intersection(sets ...[]int) []int {
-	result := []int{}
-	if len(sets) > 0 {
+	switch len(sets) {
+	case 0, 1:
+		return nil
+	default:
+		result := []int{}
 		result = sets[0]
 		sets = sets[1:]
-	}
+		for i := range sets {
+			result = intersect(result, sets[i])
+		}
 
-	for i := range sets {
-		result = intersect(result, sets[i])
+		return result
 	}
-	return result
 }
 
 // difference returns a difference of the first set and the rest ones.
-// Algorithm has side effects for input data.
 func difference(sets ...[]int) []int {
 	switch len(sets) {
 	case 0:
@@ -60,9 +59,11 @@ func difference(sets ...[]int) []int {
 		result := []int{}
 		first := sets[0]
 		sets = sets[1:]
+
 		for i := range sets {
 			result = sum(result, diff(first, sets[i]))
 		}
+
 		return result
 	}
 }
@@ -76,23 +77,32 @@ func sum(a, b []int) []int {
 	if len(b) == 0 {
 		return a
 	}
-	for i, j := 0, 0; len(a) > i && len(b) > j; {
+
+	result := make([]int, 0, len(a))
+	i, j := 0, 0
+	for i < len(a) && j < len(b) {
 		switch {
 		case a[i] < b[j]:
+			result = append(result, a[i])
 			i++
 		case a[i] > b[j]:
-			a[i], b[j] = b[j], a[i]
-			if len(b) > j+1 && b[j] == b[j+1] {
-				b = append(b[:j], b[j+1:]...)
-				break
-			}
+			result = append(result, b[j])
 			j++
 		case a[i] == b[j]:
-			b = append(b[:j], b[j+1:]...)
+			result = append(result, a[i])
+			i++
+			j++
 		}
 	}
 
-	return append(a, b...)
+	var tail []int
+	if len(a[i:]) > len(b[j:]) {
+		tail = a[i:]
+	} else {
+		tail = b[j:]
+	}
+
+	return append(result, tail...)
 }
 
 // intersect returns an intersection of two sorted sets.
@@ -102,7 +112,8 @@ func intersect(a, b []int) []int {
 	}
 
 	result := make([]int, 0)
-	for i, j := 0, 0; len(a) > i && len(b) > j; {
+
+	for i, j := 0, 0; i < len(a) && j < len(b); {
 		switch {
 		case a[i] < b[j]:
 			i++
@@ -127,34 +138,29 @@ func diff(a, b []int) []int {
 		return a
 	}
 
-	shadow := make([]int, len(a))
-	copy(shadow, a)
+	result := make([]int, 0)
 
-	for i, j := 0, 0; len(shadow) > i && len(b) > j; {
+	i, j := 0, 0
+	for i < len(a) && j < len(b) {
 		switch {
-		case shadow[i] < b[j]:
+		case a[i] < b[j]:
+			result = append(result, a[i])
 			i++
-		case shadow[i] > b[j]:
-			shadow[i], b[j] = b[j], shadow[i]
+		case a[i] > b[j]:
+			result = append(result, b[j])
 			j++
-		case shadow[i] == b[j]:
-			shadow = append(shadow[:i], shadow[i+1:]...)
-			b = append(b[:j], b[j+1:]...)
+		case a[i] == b[j]:
+			i++
+			j++
 		}
 	}
 
-	return append(shadow, b...)
-}
-
-// normalize removes duplicates from a set.
-func normalize(a []int) []int {
-	for i := 0; len(a) > i; i++ {
-		for j := i + 1; len(a) > j; j++ {
-			if a[i] == a[j] {
-				a = append(a[:j], a[j+1:]...)
-				j--
-			}
-		}
+	var tail []int
+	if len(a[i:]) > len(b[j:]) {
+		tail = a[i:]
+	} else {
+		tail = b[j:]
 	}
-	return a
+
+	return append(result, tail...)
 }
