@@ -27,8 +27,6 @@ DIF - returns difference of first set and the rest ones
 scalc> go build .
 scalc>./scalc "[ SUM [ DIF a.txt b.txt c.txt ] [ INT b.txt c.txt ] ]"
 1
-2
 3
 4
-5
 ```
