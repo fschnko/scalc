@@ -36,10 +36,12 @@ func (p *Parser) Process() (*Expression, error) {
 	}
 
 	brackets := make(rstack, 0)
-	for i, next := 0, 0; len(p.runes) > next; i = next {
+
+	for i, next := 0, 0; next < len(p.runes); i = next {
 		switch p.runes[i] {
 		case '[':
 			brackets.Push(p.runes[i])
+
 			if p.prevTokenType == expressionToken {
 				return nil, tokenSyntaxError(string(p.runes[i]), i)
 			}
@@ -59,6 +61,7 @@ func (p *Parser) Process() (*Expression, error) {
 			if next < 0 {
 				return nil, ednOfLineSyntaxError(len(p.runes))
 			}
+
 			err := p.processToken(i, next)
 			if err != nil {
 				return nil, err
@@ -78,6 +81,7 @@ func (p *Parser) up() {
 	if p.prevTokenType != rootToken {
 		p.expr = p.expr.NewExpression()
 	}
+
 	p.prevTokenType = expressionToken
 }
 
@@ -85,6 +89,7 @@ func (p *Parser) down() {
 	if !p.expr.IsRoot() {
 		p.expr = p.expr.Parent()
 	}
+
 	p.prevTokenType = operandToken
 }
 
@@ -99,6 +104,7 @@ func (p *Parser) processToken(at, to int) error {
 		if !isOperator(token) {
 			return tokenSyntaxError(token, at)
 		}
+
 		p.prevTokenType = operatorToken
 
 		p.expr.SetOperator(token)
@@ -109,6 +115,7 @@ func (p *Parser) processToken(at, to int) error {
 	default:
 		return tokenSyntaxError(token, at)
 	}
+
 	return nil
 }
 
@@ -127,11 +134,13 @@ func endOfToken(runes []rune, n int) int {
 	if n < 0 {
 		n = 0
 	}
-	for i := n; len(runes) > i; i++ {
+
+	for i := n; i < len(runes); i++ {
 		if isCloserToken(runes[i]) {
 			return i - 1
 		}
 	}
+
 	return -1
 }
 

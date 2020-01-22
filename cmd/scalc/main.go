@@ -9,16 +9,16 @@ import (
 	"github.com/fschnko/scalc"
 )
 
-var (
-	help   = flag.Bool("help", false, "display usage information and exit")
-	verify = flag.Bool("verify", false, "verify an expression syntax and exit")
-)
-
 func main() {
+	var (
+		help, verify bool
+	)
 
+	flag.BoolVar(&help, "help", false, "display usage information and exit")
+	flag.BoolVar(&verify, "verify", false, "verify an expression syntax and exit")
 	flag.Parse()
 
-	if *help {
+	if help {
 		usage()
 		return
 	}
@@ -34,8 +34,8 @@ func main() {
 		log.Fatalf("Process: %s", err)
 	}
 
-	if *verify {
-		fmt.Println("The expression has the correct syntax.")
+	if verify {
+		fmt.Println("The expression has a correct syntax.")
 		return
 	}
 

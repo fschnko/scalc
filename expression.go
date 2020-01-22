@@ -65,6 +65,7 @@ func (e *Expression) Value() ([]int, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		operands = append(operands, set)
 	}
 
@@ -86,6 +87,7 @@ func (e *Expression) Equal(x *Expression) bool {
 			return false
 		}
 	}
+
 	return true
 }
 
@@ -160,6 +162,7 @@ func readFromFile(name string) ([]int, error) {
 		if err != nil {
 			return result, err
 		}
+
 		result = append(result, dig)
 	}
 
