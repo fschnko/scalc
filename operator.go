@@ -166,7 +166,7 @@ func intersect(a, b []int) []int {
 	return result
 }
 
-// diff returns a difference betwean sorted A and B.
+// diff returns a difference between sorted A and B.
 func diff(a, b []int) []int {
 	if len(a) == 0 || len(b) == 0 {
 		return a
