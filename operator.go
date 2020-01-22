@@ -1,38 +1,67 @@
 package scalc
 
-// Operations
+import "fmt"
+
+// Operator names.
 const (
 	Sum = "SUM"
 	Int = "INT"
 	Dif = "DIF"
 )
 
-func calculate(operator string, operands ...[]int) []int {
-	switch operator {
+// Operator represents an expression operator.
+type Operator interface {
+	// Calculate returns a result of operation with sets.
+	Calculate(sets ...[]int) []int
+	// String returns a short name of operator.
+	fmt.Stringer
+}
+
+// NewOperator returns an operator for a given name.
+func NewOperator(name string) Operator {
+	switch name {
 	case Sum:
-		return union(operands...)
+		return unionOperator{}
 	case Int:
-		return intersection(operands...)
+		return intersectionOperator{}
 	case Dif:
-		return difference(operands...)
+		return differenceOperator{}
 	default:
 		return nil
 	}
 }
 
-// union returns a union of sorted sets.
-func union(sets ...[]int) []int {
+// IsOperator returns true if the given name is operator.
+func IsOperator(name string) bool {
+	switch name {
+	case Sum, Int, Dif:
+		return true
+	default:
+		return false
+	}
+}
+
+// unionOperator calculates an unionOperator join of sets.
+type unionOperator struct{}
+
+func (unionOperator) Calculate(sets ...[]int) []int {
 	result := []int{}
 
 	for i := range sets {
-		result = sum(result, sets[i])
+		result = union(result, sets[i])
 	}
 
 	return result
 }
 
-// intersection returns an intersection of sets.
-func intersection(sets ...[]int) []int {
+func (unionOperator) String() string {
+	return Sum
+}
+
+// intersectionOperator calculates an intersectionOperator join of sets.
+type intersectionOperator struct{}
+
+func (intersectionOperator) Calculate(sets ...[]int) []int {
 	switch len(sets) {
 	case 0, 1:
 		return nil
@@ -48,28 +77,36 @@ func intersection(sets ...[]int) []int {
 	}
 }
 
-// difference returns a difference of the first set and the rest ones.
-func difference(sets ...[]int) []int {
+func (intersectionOperator) String() string {
+	return Int
+}
+
+// differenceOperator returns a differenceOperator of the first set and the rest ones.
+type differenceOperator struct{}
+
+func (differenceOperator) Calculate(sets ...[]int) []int {
 	switch len(sets) {
 	case 0:
 		return nil
 	case 1:
 		return sets[0]
 	default:
-		result := []int{}
-		first := sets[0]
+		result := sets[0]
 		sets = sets[1:]
-
 		for i := range sets {
-			result = sum(result, diff(first, sets[i]))
+			result = diff(result, sets[i])
 		}
 
 		return result
 	}
 }
 
-// sum returns an union of two sorted sets.
-func sum(a, b []int) []int {
+func (differenceOperator) String() string {
+	return Dif
+}
+
+// union returns an union of two sorted sets.
+func union(a, b []int) []int {
 	if len(a) == 0 {
 		return b
 	}
@@ -129,12 +166,9 @@ func intersect(a, b []int) []int {
 	return result
 }
 
+// diff returns a difference betwean sorted A and B.
 func diff(a, b []int) []int {
-	if len(a) == 0 {
-		return b
-	}
-
-	if len(b) == 0 {
+	if len(a) == 0 || len(b) == 0 {
 		return a
 	}
 
@@ -147,7 +181,6 @@ func diff(a, b []int) []int {
 			result = append(result, a[i])
 			i++
 		case a[i] > b[j]:
-			result = append(result, b[j])
 			j++
 		case a[i] == b[j]:
 			i++
@@ -155,12 +188,5 @@ func diff(a, b []int) []int {
 		}
 	}
 
-	var tail []int
-	if len(a[i:]) > len(b[j:]) {
-		tail = a[i:]
-	} else {
-		tail = b[j:]
-	}
-
-	return append(result, tail...)
+	return append(result, a[i:]...)
 }

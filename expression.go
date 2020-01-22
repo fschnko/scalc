@@ -11,7 +11,7 @@ import (
 // Expression represents an mathematic expression in the tree form.
 type Expression struct {
 	parent   *Expression
-	operator string
+	operator Operator
 	operands []*operand
 }
 
@@ -40,7 +40,7 @@ func (e *Expression) NewExpression() *Expression {
 }
 
 // SetOperator sets an operator of expression.
-func (e *Expression) SetOperator(op string) {
+func (e *Expression) SetOperator(op Operator) {
 	e.operator = op
 }
 
@@ -55,7 +55,7 @@ func (e *Expression) add(s *operand) {
 
 // Value returns a value of the expression.
 func (e *Expression) Value() ([]int, error) {
-	if e == nil || e.operator == "" {
+	if e == nil || e.operator == nil {
 		return nil, nil
 	}
 
@@ -69,7 +69,7 @@ func (e *Expression) Value() ([]int, error) {
 		operands = append(operands, set)
 	}
 
-	return calculate(e.operator, operands...), nil
+	return e.operator.Calculate(operands...), nil
 }
 
 // Equal checks expressions for equality.
@@ -92,7 +92,7 @@ func (e *Expression) Equal(x *Expression) bool {
 }
 
 func (e *Expression) String() string {
-	if e == nil || e.operator == "" {
+	if e == nil || e.operator == nil {
 		return "[ EMPTY ]"
 	}
 

@@ -47,7 +47,7 @@ func Test_union(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := union(tt.sets...); !reflect.DeepEqual(got, tt.want) {
+			if got := NewOperator(Sum).Calculate(tt.sets...); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Union() = %v, want %v", got, tt.want)
 			}
 		})
@@ -96,7 +96,7 @@ func Test_intersection(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := intersection(tt.sets...); !reflect.DeepEqual(got, tt.want) {
+			if got := NewOperator(Int).Calculate(tt.sets...); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Intersection() = %v, want %v", got, tt.want)
 			}
 		})
@@ -105,47 +105,38 @@ func Test_intersection(t *testing.T) {
 
 func Test_difference(t *testing.T) {
 	tests := []struct {
-		name string
 		sets [][]int
 		want []int
 	}{
 		{
-			name: "nil sets",
 			sets: nil,
 			want: nil,
 		}, {
-			name: "empty sets",
 			sets: [][]int{},
 			want: nil,
 		}, {
-			name: "one set",
 			sets: [][]int{{1, 2, 3}},
 			want: []int{1, 2, 3},
 		}, {
-			name: "different sets",
 			sets: [][]int{{1, 2, 3}, {4, 5, 6}},
-			want: []int{1, 2, 3, 4, 5, 6},
+			want: []int{1, 2, 3},
 		}, {
-			name: "equal sets",
 			sets: [][]int{{1, 2, 3}, {1, 2, 3}},
 			want: []int{},
 		}, {
-			name: "intersected ranges",
 			sets: [][]int{{1, 2, 3, 5}, {4, 6, 7}},
-			want: []int{1, 2, 3, 4, 5, 6, 7},
+			want: []int{1, 2, 3, 5},
 		}, {
-			name: "three equal sets",
 			sets: [][]int{{1, 2, 3}, {1, 2, 3}, {1, 2, 3}},
 			want: []int{},
 		}, {
-			name: "three different sets",
 			sets: [][]int{{1, 2, 3}, {2, 3, 5}, {3, 5, 6}},
-			want: []int{1, 2, 5, 6},
+			want: []int{1},
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := difference(tt.sets...); !reflect.DeepEqual(got, tt.want) {
+		t.Run(Dif, func(t *testing.T) {
+			if got := NewOperator(Dif).Calculate(tt.sets...); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Difference() = %v, want %v", got, tt.want)
 			}
 		})
